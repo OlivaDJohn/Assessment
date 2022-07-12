@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="stylesheet" href="dist/tingle.min.css">
+    <style>
+    .pagination {
+      display: flex;
+      justify-content: center;
+    }
+
+    .pagination a {
+      color: black;
+      float: left;
+      padding: 8px 16px;
+      text-decoration: none;
+    }
+
+    .sortBtn{
+      float: right;
+    }
+    </style>
+  </head>
+  <body>
+    <div class="table" onload="createTable()">
+
+    </div>
+    <button class="sortBtn"type="button" name="button1" onclick="changeState()">SORT TABLE</button>
+  </body>
+  <script src="dist/tingle.min.js"></script>
+  <script>
+    var modal = new tingle.modal({
+        footer: false,
+        stickyFooter: false,
+        closeMethods: ['overlay', 'button', 'escape'],
+        closeLabel: "Close",
+        cssClass: ['custom-class-1', 'custom-class-2'],
+        beforeClose: function() {
+            // here's goes some logic
+            // e.g. save content before closing the modal
+            return true; // close the modal
+            return false; // nothing happens
+        }
+    });
+
+
+
+
+    let xhr = new XMLHttpRequest();
+    const countries = [];
+    const tempCons = [];
+    const finalArray = [];
+    var count = 1;
+
+    xhr.open("GET", "https://restcountries.com/v3.1/all");
+    xhr.send();
+    xhr.onload = () => {
+        let data = JSON.parse(xhr.response);
+
+        console.log(data);
+
+        for (var i = 0; i < data.length;i++){
+          var tempName = data[i].name.official;
+
+          if (data[i].capital !== undefined){
+            var tempCapital = data[i].capital[0];
+          } else{
+            var tempCapital = "No capital";
+          }
+
+          var tempRegion = data[i].region;
+
+          if (data[i].languages !== undefined){
+            var tempLanguage = '';
+            Object.keys(data[i].languages).forEach((key) => {
+              tempLanguage += data[i].languages[key] + " ";
+            });
+          } else{
+            var tempLanguage = "No language to display";
+          }
+
+          var tempPopulation = data[i].population;
+          var tempFlag = data[i].flag;
+
+          countries.push([tempName,tempCapital,tempRegion,tempLanguage,tempPopulation,tempFlag]);
+        }
+
+        for (var i = 0; i< countries.length;i++){
+          tempCons[i] = countries[i][0];
+        }
+
+        tempCons.sort();
+
+        for (var i = 0; i< tempCons.length;i++){
+          for (var j = 0; j< tempCons.length;j++){
+            if (countries[j][0] === tempCons[i]){
+              finalArray[i] = countries[j];
+              break;
+            }
+          }
+          /*console.log(tempCons[i]);*/
+        }
+
+        createTable();
+
+    }
+
+    function addRowHandlers() {
+      var table = document.getElementById("tableCountries");
+      var rows = table.getElementsByTagName("tr");
+      for (i = 0; i < rows.length; i++) {
+        var currentRow = table.rows[i];
+        var createClickHandler = function(row) {
+          return function() {
+            var cell = row.getElementsByTagName("td")[0];
+            var id = cell.innerHTML;
+            var currentDisplay = "https://en.wikipedia.org/api/rest_v1/page/summary/"+id;
+            let xhr2 = new XMLHttpRequest();
+            xhr2.open("GET", currentDisplay);
+            xhr2.send();
+            xhr2.onload = () => {
+              let data2 = JSON.parse(xhr2.response);
+              modal.setContent('<p>'+data2.extract_html+'</p>');
+            }
+
+            modal.open();
+
+
+          };
+        };
+        currentRow.onclick = createClickHandler(currentRow);
+      }
+    }
+
+    function createTable() {
+      var body = document.getElementsByTagName("body")[0];
+      var tables = document.createElement("table");
+      var tblBody = document.createElement("tbody");
+
+      for (var i = 0; i < countries.length; i++){
+        var row = document.createElement("tr");
+
+        for (var j = 0; j < countries[i].length;j++){
+          var cell = document.createElement("td");
+          var cellContent = document.createTextNode(finalArray[i][j]);
+          cell.appendChild(cellContent);
+          row.appendChild(cell);
+        }
+        tblBody.appendChild(row);
+      }
+      tables.appendChild(tblBody);
+      body.appendChild(tables);
+      tables.setAttribute("border", "2");
+      tables.setAttribute("id", "tableCountries");
+      addRowHandlers();
+    }
+
+    function changeState(){
+      count++;
+      if (count % 2){
+        sorter(true)
+      }else {
+        sorter(false)
+      }
+    }
+
+    function deleteTable(){
+      var elem = document.getElementById('tableCountries');
+      if (typeof elem != 'undefined')
+      {
+        elem.parentNode.removeChild(elem);
+      }
+    }
+
+    function sorter(zzz){
+      deleteTable()
+      if (zzz){
+        console.clear();
+        tempCons.sort();
+
+        for (var i = 0; i< tempCons.length;i++){
+          for (var j = 0; j< tempCons.length;j++){
+            if (countries[j][0] === tempCons[i]){
+              finalArray[i] = countries[j];
+              break;
+            }
+          }
+          /*console.log(tempCons[i]);*/
+        }
+        createTable()
+        /*for (var i = 0; i < finalArray.length; i++) {
+          console.log(finalArray[i]);
+        }*/
+      } else if (!zzz){
+        console.clear();
+        tempCons.reverse();
+
+        for (var i = 0; i< tempCons.length;i++){
+          for (var j = 0; j< tempCons.length;j++){
+            if (countries[j][0] === tempCons[i]){
+              finalArray[i] = countries[j];
+              break;
+            }
+          }
+          /*console.log(tempCons[i]);*/
+        }
+        createTable()
+        /*for (var i = 0; i < finalArray.length; i++) {
+          console.log(finalArray[i]);
+        }*/
+      }
+      console.log(status);
+    }
+  </script>
+  <body>
+    <div class="pagination">
+      <a href="#">&laquo;</a>
+      <a href="#">1</a>
+      <a href="#">2</a>
+      <a href="#">3</a>
+      <a href="#">4</a>
+      <a href="#">5</a>
+      <a href="#">6</a>
+      <a href="#">7</a>
+      <a href="#">8</a>
+      <a href="#">9</a>
+      <a href="#">10</a>
+      <a href="#">&raquo;</a>
+    </div>
+  </body>
+</html>
